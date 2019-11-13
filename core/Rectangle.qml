@@ -9,6 +9,7 @@ Item {
 
 	onColorChanged: {
 		this.style('background-color', $core.Color.normalize(value))
+		this._updateStyle();
 	}
 
 	prototypeConstructor: {
