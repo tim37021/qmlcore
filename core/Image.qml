@@ -24,9 +24,9 @@ Item {
 	function getClass() { return 'core-image' }
 
 	///@private
-	function _scheduleLoad() {
+	function _scheduleLoad(delay) {
 		if (this.preload || this.recursiveVisible)
-			this._context.delayedAction('image.load', this, this._load)
+			this._context.delayedAction('image.load', this, this._load, delay)
 	}
 
 	///@private
@@ -56,6 +56,6 @@ Item {
 
 	onSourceChanged: {
 		this.status = this.Null
-		this._scheduleLoad()
+		this._scheduleLoad(0)
 	}
 }
