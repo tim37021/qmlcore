@@ -20,6 +20,8 @@ BaseLayout {
 
 	/// @internal
 	property BaseViewContent content: BaseViewContent {
+		cssTranslatePositioning: parent.cssTranslatePositioning;
+
 		Behavior on x, y, transform { Animation { duration: parent.parent.animationDuration; easing: parent.parent.animationEasing; } }
 	}
 
@@ -294,6 +296,41 @@ BaseLayout {
 		this._setProperty('contentY', y)
 		this.content._updateScrollPositions(x, y, layout)
 	}
+
+	function positionViewAtItemHorizontally(itemBox, center, centerOversized) {
+		var cx = this.contentX, cy = this.contentY
+		var x = itemBox[0], y = itemBox[1]
+		var iw = itemBox[2], ih = itemBox[3]
+		var w = this.width, h = this.height
+
+		var atCenter = x - w / 2 + iw / 2
+		if (iw > w)
+			this.contentX = centerOversized? atCenter: x
+		else if (center && this.contentWidth > w)
+			this.contentX = atCenter < 0 ? 0 : x > this.contentWidth - w / 2 - iw / 2 ? this.contentWidth - w : atCenter
+		else if (x - cx <= 0)
+			this.contentX = x
+		else if (x - cx + iw > w)
+			this.contentX = x + iw - w
+	}
+
+	function positionViewAtItemVertically(itemBox, center, centerOversized) {
+		var cx = this.contentX, cy = this.contentY
+		var x = itemBox[0], y = itemBox[1]
+		var iw = itemBox[2], ih = itemBox[3]
+		var w = this.width, h = this.height
+
+		var atCenter = y - h / 2 + ih / 2
+		if (ih > h)
+			this.contentY = centerOversized? atCenter: y
+		else if (center && this.contentHeight > h)
+			this.contentY = atCenter < 0 ? 0 : y > this.contentHeight - h / 2 - ih / 2 ? this.contentHeight - h : atCenter
+		else if (y - cy <= 0)
+			this.contentY = y
+		else if (y - cy + ih > h)
+			this.contentY = y + ih - h
+	}
+
 
 	onCompleted: {
 		var self = this
