@@ -19,6 +19,7 @@ class component_generator(object):
 		self.properties = []
 		self.enums = {}
 		self.assignments = {}
+		self.implicit_assignments = []
 		self.animations = {}
 		self.package = get_package(name)
 		self.base_type = None
@@ -453,10 +454,13 @@ class component_generator(object):
 				return
 
 			if not self.find_property(registry, path[0]):
-				raise Exception('unknown property %s in %s (%s)' %(path[0], self.name, self.component.name))
+				#raise Exception('unknown property %s in %s (%s)' %(path[0], self.name, self.component.name))
+				return False
 		else: #len(path) == 1
 			if not self.find_property(registry, target):
-				raise Exception('unknown property %s in %s (%s)' %(target, self.name, self.component.name))
+				# raise Exception('unknown property %s in %s (%s)' %(target, self.name, self.component.name))
+				return False
+		return True
 
 	def generate_creator_function(self, registry, name, value, ident_n = 1):
 		ident = "\t" * ident_n
@@ -501,7 +505,7 @@ class component_generator(object):
 			r.append("%s%s.%s = %s" %(ident, closure, var, var))
 			code = self.call_create(registry, ident_n, var, gen, closure)
 			r.append(code)
-			r.append("%s%s.addChild(%s)" %(ident, parent, var));
+			r.append("%s%s.addChild(%s)" %(ident, parent, var))
 
 		for target, value in self.assignments.items():
 			if target == "id":
@@ -511,7 +515,9 @@ class component_generator(object):
 			elif target.endswith(".id"):
 				raise Exception("setting id of the remote object is prohibited")
 			else:
-				self.check_target_property(registry, target)
+				if not self.check_target_property(registry, target):
+					# implicit assignment
+					self.implicit_assignments.append(target)
 
 			if isinstance(value, component_generator):
 				if target != "delegate":
@@ -663,6 +669,9 @@ class component_generator(object):
 
 		if self.elements:
 			r.append("%s%s.assign(%s)" %(ident, parent, json.dumps(self.elements, sort_keys=True)))
+
+		# put all implicit assignment
+		r.append("%s%s._implicit=[%s]"%(ident, parent, ', '.join(["'"+x+"'"for x in self.implicit_assignments])))
 
 		r.append(self.generate_animations(registry, parent))
 		r.append('%s%s.completed()' %(ident, parent))
